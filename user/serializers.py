@@ -8,7 +8,7 @@ from user.models import Profile
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, help_text='Required. Password must contain at least 8 characters')
     hotel = serializers.SlugRelatedField(many=False, slug_field='name', queryset=Hotel.objects.all(),
-                                         source='profile.hotel')
+                                         source='profile.hotel', help_text='Hotel where user stay')
 
     class Meta:
         model = User

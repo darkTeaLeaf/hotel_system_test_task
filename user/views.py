@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAdminUser
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 
 from user.serializers import UserSerializer, PasswordSerializer
@@ -30,13 +30,17 @@ class UserViewSet(viewsets.ModelViewSet):
     """
     queryset = User.objects.all()
     user_serializer = UserSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAuthenticated, IsAdminUser]
 
     def get_serializer_class(self):
         return self.user_serializer
 
-    @action(methods=['post'], detail=True, url_path='change-password', url_name='change_password')
+    @action(methods=['post'], detail=True, url_path='change-password', url_name='change_password',
+            permission_classes=[IsAuthenticated])
     def set_password(self, request, pk=None):
+        """
+        Change password via providing the old and new ones.
+        """
         user = User.objects.get(id=pk)
         serializer = PasswordSerializer(data=request.data)
 

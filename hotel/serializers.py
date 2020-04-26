@@ -28,7 +28,8 @@ class RoomSerializer(serializers.ModelSerializer):
 
 
 class BookingSerializer(serializers.ModelSerializer):
-    room = serializers.SlugRelatedField(many=False, slug_field='id', queryset=Room.objects.all(), write_only=True)
+    room = serializers.SlugRelatedField(many=False, slug_field='id', queryset=Room.objects.all(), write_only=True,
+                                        help_text='Booked room')
     room_name = serializers.CharField(source='room.name', read_only=True)
 
     class Meta:

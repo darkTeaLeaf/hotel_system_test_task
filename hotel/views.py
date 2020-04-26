@@ -11,6 +11,14 @@ from hotel.serializers import HotelSerializer, RoomCategorySerializer, RoomSeria
 class HotelViewSet(mixins.ListModelMixin,
                    mixins.RetrieveModelMixin,
                    GenericViewSet):
+    """
+        retrieve:
+        Return the hotel specified by id.
+
+        list:
+        Return a list of all the existing hotels.
+
+    """
     queryset = Hotel.objects.all()
     serializer_class = HotelSerializer
     permission_classes = [IsAuthenticated, IsAdminUser]
@@ -19,6 +27,14 @@ class HotelViewSet(mixins.ListModelMixin,
 class RoomCategoryViewSet(mixins.ListModelMixin,
                           mixins.RetrieveModelMixin,
                           GenericViewSet):
+    """
+        retrieve:
+        Return the room category specified by id.
+
+        list:
+        Return a list of all the existing room categories.
+
+    """
     serializer_class = RoomCategorySerializer
     permissions_classes = [IsAuthenticated, IsHotelRelated]
 
@@ -29,6 +45,14 @@ class RoomCategoryViewSet(mixins.ListModelMixin,
 class RoomViewSet(mixins.ListModelMixin,
                   mixins.RetrieveModelMixin,
                   GenericViewSet):
+    """
+        retrieve:
+        Return the room specified by id.
+
+        list:
+        Return a list of all the existing rooms. If room category is specified, the list is filtered by it.
+
+    """
     serializer_class = RoomSerializer
     permissions_classes = [IsAuthenticated, IsHotelRelated]
 
@@ -43,6 +67,14 @@ class BookingViewSet(mixins.ListModelMixin,
                      mixins.RetrieveModelMixin,
                      mixins.CreateModelMixin,
                      GenericViewSet):
+    """
+        retrieve:
+        Return the booking specified by id.
+
+        list:
+        Return a list of all the existing bookings. If room is specified, the list is filtered by it.
+
+    """
     serializer_class = BookingSerializer
     permissions_classes = [IsAuthenticated, IsHotelRelated]
 
