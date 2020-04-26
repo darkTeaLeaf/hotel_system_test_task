@@ -1,53 +1,60 @@
-from django.contrib.auth.models import User
-from rest_framework import viewsets, status
-from rest_framework.decorators import action
-from rest_framework.permissions import IsAdminUser
+from rest_framework import mixins, status
 from rest_framework.response import Response
+from rest_framework.viewsets import GenericViewSet
 
-from hotel.serializers import UserSerializer, PasswordSerializer
+from hotel.models import Hotel, RoomCategory, Room, Booking
+from hotel.serializers import HotelSerializer, RoomCategorySerializer, RoomSerializer, BookingSerializer
 
 
-class UserViewSet(viewsets.ModelViewSet):
-    """
-        retrieve:
-        Return the user specified by id.
+class HotelViewSet(mixins.ListModelMixin,
+                   mixins.RetrieveModelMixin,
+                   GenericViewSet):
+    queryset = Hotel.objects.all()
+    serializer_class = HotelSerializer
 
-        list:
-        Return a list of all the existing users.
 
-        create:
-        Create a new user.
+class RoomCategoryViewSet(mixins.ListModelMixin,
+                          mixins.RetrieveModelMixin,
+                          GenericViewSet):
+    serializer_class = RoomCategorySerializer
 
-        update:
-        Update of all user fields. Request should contain all user parameters.
+    def get_queryset(self):
+        return RoomCategory.objects.filter(hotel__id=self.kwargs['hotel_id'])
 
-        partial_update:
-        Update of all or some of user fields. There is no requirement to contain all the parameters.
 
-        delete:
-        Delete the user specified by id.
+class RoomViewSet(mixins.ListModelMixin,
+                  mixins.RetrieveModelMixin,
+                  GenericViewSet):
+    serializer_class = RoomSerializer
 
-    """
-    queryset = User.objects.all()
-    user_serializer = UserSerializer
-    permission_classes = [IsAdminUser]
+    def get_queryset(self):
+        if 'category_id' in self.kwargs:
+            return Room.objects.filter(room_category_id=self.kwargs['category_id'])
 
-    def get_serializer_class(self):
-        return self.user_serializer
+        return Room.objects.filter(room_category__in=RoomCategory.objects.filter(hotel__id=self.kwargs['hotel_id']))
 
-    @action(methods=['post'], detail=True, url_path='change-password', url_name='change_password')
-    def set_password(self, request, pk=None):
-        user = User.objects.get(id=pk)
-        serializer = PasswordSerializer(data=request.data)
 
-        if serializer.is_valid():
-            if not user.check_password(serializer.data.get('old_password')):
-                return Response({'old_password': ['Wrong password.']},
-                                status=status.HTTP_400_BAD_REQUEST)
-            # set_password also hashes the password that the user will get
-            user.set_password(serializer.data.get('new_password'))
-            user.save()
-            return Response({'status': 'password set'}, status=status.HTTP_200_OK)
+class BookingViewSet(mixins.ListModelMixin,
+                     mixins.RetrieveModelMixin,
+                     mixins.CreateModelMixin,
+                     GenericViewSet):
+    serializer_class = BookingSerializer
 
-        return Response(serializer.errors,
-                        status=status.HTTP_400_BAD_REQUEST)
+    def get_queryset(self):
+        if 'room_id' in self.kwargs:
+            return Booking.objects.filter(room_id=self.kwargs['room_id'])
+
+        return Booking.objects.filter(room__in=Room.objects.filter(
+            room_category__in=RoomCategory.objects.filter(hotel__id=self.kwargs['hotel_id'])))
+
+    def create(self, request, *args, **kwargs):
+        filter_params = dict(date_check_in=request.data['date_check_in'],
+                             date_check_out=request.data['date_check_out'])
+        print(request.data)
+        is_occupied = Booking.objects.filter(**filter_params, room=request.data['room']).exists()
+
+        if is_occupied:
+            return Response({'Room has already booked for for this date. Please, choose another one.'},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        return super(BookingViewSet, self).create(request, args, kwargs)

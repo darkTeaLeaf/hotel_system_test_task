@@ -5,3 +5,5 @@ __pycache__
 HotelSystem/__pycache__
 hotel/__pycache__
 hotel/migrations
+user/__pycache__
+user/migrations
