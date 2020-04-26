@@ -47,14 +47,3 @@ class BookingViewSet(mixins.ListModelMixin,
         return Booking.objects.filter(room__in=Room.objects.filter(
             room_category__in=RoomCategory.objects.filter(hotel__id=self.kwargs['hotel_id'])))
 
-    def create(self, request, *args, **kwargs):
-        filter_params = dict(date_check_in=request.data['date_check_in'],
-                             date_check_out=request.data['date_check_out'])
-        print(request.data)
-        is_occupied = Booking.objects.filter(**filter_params, room=request.data['room']).exists()
-
-        if is_occupied:
-            return Response({'Room has already booked for for this date. Please, choose another one.'},
-                            status=status.HTTP_400_BAD_REQUEST)
-
-        return super(BookingViewSet, self).create(request, args, kwargs)
