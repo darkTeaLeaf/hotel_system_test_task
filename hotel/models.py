@@ -17,6 +17,9 @@ class RoomCategory(models.Model):
     def __str__(self):
         return self.name
 
+    def get_hotel(self):
+        return self.hotel
+
 
 class Room(models.Model):
     room_category = models.ForeignKey(RoomCategory, on_delete=models.CASCADE, help_text='Category of a room')
@@ -24,6 +27,9 @@ class Room(models.Model):
 
     def __str__(self):
         return self.name
+
+    def get_hotel(self):
+        return self.room_category.hotel
 
 
 class Booking(models.Model):
@@ -33,3 +39,6 @@ class Booking(models.Model):
 
     def __str__(self):
         return self.room.name + str(self.date_check_in)
+
+    def get_hotel(self):
+        return self.room.room_category.hotel
